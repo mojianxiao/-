@@ -6,6 +6,7 @@
 
 <p>	解决大型网站的高并发，除了网站实现分布式负载均衡，利用主从数据库来实现读写分离，从而分担主数据库的压力也是一个好方法。
     在多个服务器上部署MySQL，将其中一台作为主数据库，而其他作为从数据库，实现主从同步。其中主数据负责主动写的操作，从数据库只负责主动读的操作，为了保持数据的一致性，从数据库仍然会被动的进行写操作。</p>
+
 ![img](https://img-blog.csdnimg.cn/20190304165712787.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzE1MDkyMDc5,size_16,color_FFFFFF,t_70)
 
 ### 配置
@@ -42,7 +43,6 @@
 5. 配置从服务器文件my.cnf
 
    ```
-   
    server-id=2
    relay-log=slave-relay-bin
    relay-log-index=slave-relay-bin.index
@@ -73,11 +73,8 @@
 事务性：满足ACID，可以通过commit提交一个事务，也可以使用rollback进行回滚。
 
 1. 原子性：要么全部提交成功。要么全部失败回滚。
-
 2. 一致性：数据库在事务执行前后都保持一致性状态。
-
 3. 隔离性：一个事务所做的修改在最终提交以前，对其他事务是不可见的。
-
 4. 持久性：一旦事务提交，则其所做的修改将会永远保存到数据库中，即使系统发生崩溃，事务执行的结果也不能丢失。
 
 ### 并发一致性问题
@@ -113,3 +110,90 @@ MySQL中提供了两种封锁粒度：行级锁以及表级锁。
 但是加锁需要消耗资源，锁的各种操作（包括获取锁、释放锁、以及检查锁状态）都会增加系统开销。因此封锁粒度越小，系统开销就越大。
 
 在选择封锁粒度时，需要在锁开销和并发程度之间做一个权衡。
+
+##### 封锁类型
+
+MySQL 的 InnoDB 存储引擎采用两段锁协议，会根据隔离级别在需要的时候自动加锁，并且所有的锁都是在同一时刻被释放，这被称为隐式锁定。
+
+##### 隔离级别
+
+1. 未提交读：事务中的修改，即使没有提交，对其他事务也是可见的。
+2. 提交读：一个事物只能读取已经提交的事务所做的修改。
+3. 可重复读：保证在同一个事务中多次读取同样的结果是一样的。
+4. 可串行化：强制事务串行执行。需要加锁处理。
+
+### 关系数据库设计理念
+
+#### 函数依赖
+
+记 A->B 表示 A 函数决定 B，也可以说 B 函数依赖于 A。
+
+如果 {A1，A2，... ，An} 是关系的一个或多个属性的集合，该集合函数决定了关系的其它所有属性并且是最小的，那么该集合就称为键码。
+
+对于 A->B，如果能找到 A 的真子集 A'，使得 A'-> B，那么 A->B 就是部分函数依赖，否则就是完全函数依赖。
+
+对于 A->B，B->C，则 A->C 是一个传递函数依赖。
+
+#### 范式
+
+1. 第一范式：属性不可分
+2. 第二范式：每个非主属性完全函数依赖于键码
+3. 第三范式：不传递函数依赖
+
+### SQL基本操作
+
+<font color=green size=4px>创建表</font>	
+
+```
+CREATE Table student(
+	id INT NOT NULL AUTO_INCREMENT,
+	name VARCHAR(45) NOT NULL DEFAULT 2,
+	PRIMARY KEY(`id`)
+);
+```
+
+<font color=green size=4px>修改表</font>	
+
+添加列
+
+```mysql
+ALTER TABLE student
+add col char(20);
+```
+
+删除列
+
+```mysql
+ALTER TABLE student
+DROP COLUMN col;
+```
+
+删除表
+
+```
+DROP TABLE student;
+```
+
+<font color=green size=4px>插入</font>
+
+普通插入
+
+```mysql
+INSERT INTO student(id,name) VALUES(1,'小明');
+```
+
+插入检索出来的数据
+
+```mysql
+INSERT INTO mytable1(col1, col2)
+SELECT col1, col2
+FROM mytable2;
+```
+
+将一个表的内容插入到一个新表
+
+```mysql
+CREATE TABLE newtable AS
+SELECT * FROM mytable;
+```
+
