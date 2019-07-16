@@ -197,3 +197,199 @@ CREATE TABLE newtable AS
 SELECT * FROM mytable;
 ```
 
+<font color=green size=4px>更新表</font>	
+
+```mysql
+UPDATE student SET name = '小张' where id =1 
+```
+
+<font color=green size=4px>删除</font>	
+
+```mysql
+DELETE FROM student where id =1
+```
+
+TRUNCATE TABLE 可以清空表，也就是删除所有行
+
+```mysql
+TRUNCATE TABLE student
+```
+
+<font color=green size=4px>查询</font>	
+
+DISTINCT：相同值只出现一次，作用于所有列
+
+```mysql
+SELECT DISTINCT col,col2
+FROM student
+```
+
+LIMIT:限制返回的行数
+
+```mysql
+SELECT * FROM
+student LIMIT 5;
+```
+
+要返回3~5行
+
+```mysql
+SELECT * FROM student LIMIT 2,3
+```
+
+<font color=green size=4px>排序</font>	
+
+ASC:升序 
+
+DESC:降序
+
+```mysql
+SELECT * FROM student 
+ORDER BY col DESC,col2 ASC;
+```
+
+<font color=green size=4px>过滤</font>	
+
+```mysql
+SELECT *
+FROM mytable
+WHERE col IS NULL;
+```
+
+| 操作符  | 说明         |
+| ------- | ------------ |
+| =       |              |
+| <       | 小于         |
+| >       |              |
+| <>!=    | 不等于       |
+| <=!>    | 小于等于     |
+| >=!<    | 大于等于     |
+| BETWEEN | 在两个值之间 |
+| IS NULL |              |
+
+<font color=green size=4px>计算字段</font>
+
+计算字段通常需要使用 **AS** 来取别名，否则输出的时候字段名为计算表达式。
+
+```mysql
+SELECT  id * `password` as try from `admin` where id = 1
+```
+
+```mysql
+SELECT concat(TRIM(id),`password`) as demo from `admin`                                                                                                                                                                                                                                                                                                            
+```
+
+<font color=green size=4px>分组</font>
+
+把具有相同的数据值的行放在同一组中。
+
+可以对同一分组数据使用汇总函数进行处理，例如求分组数据的平均值等。
+
+指定的分组字段除了能按该字段进行分组，也会自动按该字段进行排序。
+
+```mysql
+SELECT col, COUNT(*) AS num
+FROM mytable
+GROUP BY col;
+```
+
+WHERE 过滤行，HAVING 过滤分组，行过滤应当先于分组过滤。
+
+```mysql
+SELECT col, COUNT(*) AS num
+FROM mytable
+WHERE col > 2
+GROUP BY col
+HAVING num >= 2;
+```
+
+<font color=red size=6px>分组规定</font>
+
+- GROUP BY 子句出现在 WHERE 子句之后，ORDER BY 子句之前；
+- 除了汇总字段外，SELECT 语句中的每一字段都必须在 GROUP BY 子句中给出；
+- NULL 的行会单独分为一组；
+- 大多数 SQL 实现不支持 GROUP BY 列具有可变长度的数据类型。
+
+<font color=green size=4px>子查询</font>
+
+```mysql
+SELECT *
+FROM mytable1
+WHERE col1 IN (SELECT col2
+               FROM mytable2);
+```
+
+<font color=green size=4px>连接</font>
+
+```mysql
+SELECT e1.name
+FROM employee AS e1 INNER JOIN employee AS e2
+ON e1.department = e2.department
+      AND e2.name = "Jim";
+```
+
+```mysql
+SELECT Customers.cust_id, Orders.order_num
+FROM Customers LEFT OUTER JOIN Orders
+ON Customers.cust_id = Orders.cust_id;
+```
+
+<font color=green size=4px>组合查询（UNION）</font>
+
+```mysql
+SELECT col
+FROM mytable
+WHERE col = 1
+UNION
+SELECT col
+FROM mytable
+WHERE col =2;
+```
+
+<!--视图-->
+
+视图是虚拟的表，本身不包含数据，也就不能对其进行索引操作。
+
+对视图的操作和对普通表的操作一样。
+
+视图具有如下好处：
+
+- 简化复杂的 SQL 操作，比如复杂的连接；
+- 只使用实际表的一部分数据；
+- 通过只给用户访问视图的权限，保证数据的安全性；
+- 更改数据格式和表示。
+
+<!--存储过程-->
+
+- 代码封装，保证了一定的安全性；
+- 代码复用；
+- 由于是预先编译，因此具有很高的性能
+
+```mysql
+delimiter //
+
+create procedure myprocedure( out ret int )
+    begin
+        declare y int;
+        select sum(col1)
+        from mytable
+        into y;
+        select y*y into ret;
+    end //
+
+delimiter ;
+```
+
+==触发器==
+
+触发器会在某个表执行以下语句时而自动执行：DELETE、INSERT、UPDATE。
+
+触发器必须指定在语句执行之前还是之后自动执行，之前执行使用 BEFORE 关键字，之后执行使用 AFTER 关键字。BEFORE 用于数据验证和净化，AFTER 用于审计跟踪，将修改记录到另外一张表中。
+
+```mysql
+CREATE TRIGGER mytrigger AFTER INSERT ON mytable
+FOR EACH ROW SELECT NEW.col into @result;
+
+SELECT @result; -- 获取结果
+```
+
