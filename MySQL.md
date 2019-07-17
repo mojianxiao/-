@@ -172,6 +172,7 @@ DROP COLUMN col;
 
 ```
 DROP TABLE student;
+
 ```
 
 <font color=green size=4px>插入</font>
@@ -180,6 +181,7 @@ DROP TABLE student;
 
 ```mysql
 INSERT INTO student(id,name) VALUES(1,'小明');
+
 ```
 
 插入检索出来的数据
@@ -188,6 +190,7 @@ INSERT INTO student(id,name) VALUES(1,'小明');
 INSERT INTO mytable1(col1, col2)
 SELECT col1, col2
 FROM mytable2;
+
 ```
 
 将一个表的内容插入到一个新表
@@ -195,24 +198,28 @@ FROM mytable2;
 ```mysql
 CREATE TABLE newtable AS
 SELECT * FROM mytable;
+
 ```
 
 <font color=green size=4px>更新表</font>	
 
 ```mysql
 UPDATE student SET name = '小张' where id =1 
+
 ```
 
 <font color=green size=4px>删除</font>	
 
 ```mysql
 DELETE FROM student where id =1
+
 ```
 
 TRUNCATE TABLE 可以清空表，也就是删除所有行
 
 ```mysql
 TRUNCATE TABLE student
+
 ```
 
 <font color=green size=4px>查询</font>	
@@ -222,6 +229,7 @@ DISTINCT：相同值只出现一次，作用于所有列
 ```mysql
 SELECT DISTINCT col,col2
 FROM student
+
 ```
 
 LIMIT:限制返回的行数
@@ -229,12 +237,14 @@ LIMIT:限制返回的行数
 ```mysql
 SELECT * FROM
 student LIMIT 5;
+
 ```
 
 要返回3~5行
 
 ```mysql
 SELECT * FROM student LIMIT 2,3
+
 ```
 
 <font color=green size=4px>排序</font>	
@@ -246,6 +256,7 @@ DESC:降序
 ```mysql
 SELECT * FROM student 
 ORDER BY col DESC,col2 ASC;
+
 ```
 
 <font color=green size=4px>过滤</font>	
@@ -254,6 +265,7 @@ ORDER BY col DESC,col2 ASC;
 SELECT *
 FROM mytable
 WHERE col IS NULL;
+
 ```
 
 | 操作符  | 说明         |
@@ -273,10 +285,12 @@ WHERE col IS NULL;
 
 ```mysql
 SELECT  id * `password` as try from `admin` where id = 1
+
 ```
 
 ```mysql
 SELECT concat(TRIM(id),`password`) as demo from `admin`                                                                                                                                                                                                                                                                                                            
+
 ```
 
 <font color=green size=4px>分组</font>
@@ -291,6 +305,7 @@ SELECT concat(TRIM(id),`password`) as demo from `admin`
 SELECT col, COUNT(*) AS num
 FROM mytable
 GROUP BY col;
+
 ```
 
 WHERE 过滤行，HAVING 过滤分组，行过滤应当先于分组过滤。
@@ -301,6 +316,7 @@ FROM mytable
 WHERE col > 2
 GROUP BY col
 HAVING num >= 2;
+
 ```
 
 <font color=red size=6px>分组规定</font>
@@ -317,6 +333,7 @@ SELECT *
 FROM mytable1
 WHERE col1 IN (SELECT col2
                FROM mytable2);
+
 ```
 
 <font color=green size=4px>连接</font>
@@ -326,12 +343,14 @@ SELECT e1.name
 FROM employee AS e1 INNER JOIN employee AS e2
 ON e1.department = e2.department
       AND e2.name = "Jim";
+
 ```
 
 ```mysql
 SELECT Customers.cust_id, Orders.order_num
 FROM Customers LEFT OUTER JOIN Orders
 ON Customers.cust_id = Orders.cust_id;
+
 ```
 
 <font color=green size=4px>组合查询（UNION）</font>
@@ -344,6 +363,7 @@ UNION
 SELECT col
 FROM mytable
 WHERE col =2;
+
 ```
 
 <!--视图-->
@@ -378,6 +398,7 @@ create procedure myprocedure( out ret int )
     end //
 
 delimiter ;
+
 ```
 
 ==触发器==
@@ -391,5 +412,133 @@ CREATE TRIGGER mytrigger AFTER INSERT ON mytable
 FOR EACH ROW SELECT NEW.col into @result;
 
 SELECT @result; -- 获取结果
+
 ```
+
+### 索引
+
+<!--B+ Tree 原理-->
+
+==1.数据结构==
+
+B Tree指的是Balance Tree，也就是平衡树。平衡树是一颗查找树，并且所有叶子节点位于同一层。
+
+B+ Tree是基于B Tree和叶子节点顺序访问指针进行实现，它具有B Tree的平衡性，并且通过顺序访问指针来提高区间查询的性能。
+
+在 B+ Tree 中，一个节点中的 key 从左到右非递减排列，如果某个指针的左右相邻 key 分别是 keyi 和 keyi+1，且不为 null，则该指针指向节点的所有 key 大于等于 keyi 且小于等于 keyi+1。
+
+==2.操作==
+
+进行查找操作，首先在根节点通过二分法找到叶子节点，然后在叶子节点进行二分查找，找出key所对应的data。
+
+插入删除操作会破坏平衡树的平衡性，因此在插入删除操作后，需要对树进行一个分裂、合并、旋转等操作来维护平衡性。
+
+==3.与红黑树的比较==
+
+1. 更少的查找次数（B+ Tree出度非常大）
+2. 利用磁盘预读特性
+
+#### MySQL索引
+
+1.B+ Tree索引
+
+对树进行搜索，所以查找速度很快，由于B+ Tree的有序性，所以除了用于查找，还可以用于排序和分组。 
+
+可以指定多个列作为索引列，多个索引组成键。
+
+2.哈希索引
+
+哈希索引能以O(1)时间进行查找，但是失去了有序性
+
+InnoDB存储引擎可以进行“自适应哈希索引”
+
+3.全文索引
+
+MyISAM 存储引擎支持全文索引，用于查找文本中的关键词，而不是直接比较是否相等。InnoDB 存储引擎在 MySQL 5.6.4 版本中也开始支持全文索引。
+
+4.空间数据索引
+
+MyISAM 存储引擎支持空间数据索引（R-Tree），可以用于地理数据存储。空间数据索引会从所有维度来索引数据，可以有效地使用任意维度来进行组合查询。
+
+必须使用 GIS 相关的函数来维护数据。
+
+<!--索引的优点-->
+
+- 大大减少了服务器需要扫描的数据行数。
+- 帮助服务器避免进行排序和分组，以及避免创建临时表（B+Tree 索引是有序的，可以用于 ORDER BY 和 GROUP BY 操作。临时表主要是在排序和分组过程中创建，不需要排序和分组，也就不需要创建临时表）。
+- 将随机 I/O 变为顺序 I/O（B+Tree 索引是有序的，会将相邻的数据都存储在一起
+
+==索引的使用条件：==
+
+- 对于非常小的表、大部分情况下简单的全表扫描比建立索引更高效；
+- 对于中到大型的表，索引就非常有效；
+- 但是对于特大型的表，建立和维护索引的代价将会随之增长。这种情况下，需要用到一种技术可以直接区分出需要查询的一组数据，而不是一条记录一条记录地匹配，例如可以使用分区技术。
+
+### ==查询性能优化：==
+
+1. 减少请求的数据量
+
+   - 只返回必要的列：最好不要使用 SELECT * 语句。
+   - 只返回必要的行：使用 LIMIT 语句来限制返回的数据。
+   - 缓存重复查询的数据：使用缓存可以避免在数据库中进行查询，特别在要查询的数据经常被重复查询时，缓存带来的查询性能提升将会是非常明显的。
+
+2. 减少服务器扫描的行数
+
+   最有效的方式是使用索引来覆盖查询。
+
+==重构查询方式==
+
+1. 切分大查询：一个大查询如果一次性执行的话，可能一次锁住很多数据、占满整个事务日志、耗尽系统资源、阻塞很多小的但重要的查询。
+2. 分解大连接查询
+   - 让缓存更高效。对于连接查询，如果其中一个表发生变化，那么整个查询缓存就无法使用。而分解后的多个查询，即使其中一个表发生变化，对其它表的查询缓存依然可以使用。
+   - 分解成多个单表查询，这些单表查询的缓存结果更可能被其它查询使用到，从而减少冗余记录的查询。
+   - 减少锁竞争；
+   - 在应用层进行连接，可以更容易对数据库进行拆分，从而更容易做到高性能和可伸缩。
+   - 查询本身效率也可能会有所提升。例如下面的例子中，使用 IN() 代替连接查询，可以让 MySQL 按照 ID 顺序进行查询，这可能比随机的连接要更高效。
+
+<!--存储引擎-->
+
+==InnoDB==
+
+是 MySQL 默认的事务型存储引擎，只有在需要它不支持的特性时，才考虑使用其它存储引擎。
+
+实现了四个标准的隔离级别，默认级别是可重复读（REPEATABLE READ）。在可重复读隔离级别下，通过多版本并发控制（MVCC）+ 间隙锁（Next-Key Locking）防止幻影读。
+
+主索引是聚簇索引，在索引中保存了数据，从而避免直接读取磁盘，因此对查询性能有很大的提升。
+
+内部做了很多优化，包括从磁盘读取数据时采用的可预测性读、能够加快读操作并且自动创建的自适应哈希索引、能够加速插入操作的插入缓冲区等。
+
+支持真正的在线热备份。其它存储引擎不支持在线热备份，要获取一致性视图需要停止对所有表的写入，而在读写混合场景中，停止写入可能也意味着停止读取。
+
+==MyISAM==
+
+设计简单，数据以紧密格式存储。对于只读数据，或者表比较小、可以容忍修复操作，则依然可以使用它。
+
+提供了大量的特性，包括压缩表、空间数据索引等。
+
+不支持事务。
+
+不支持行级锁，只能对整张表加锁，读取时会对需要读到的所有表加共享锁，写入时则对表加排它锁。但在表有读取操作的同时，也可以往表中插入新的记录，这被称为并发插入（CONCURRENT INSERT）。
+
+可以手工或者自动执行检查和修复操作，但是和事务恢复以及崩溃恢复不同，可能导致一些数据丢失，而且修复操作是非常慢的。
+
+如果指定了 DELAY_KEY_WRITE 选项，在每次修改执行完成时，不会立即将修改的索引数据写入磁盘，而是会写到内存中的键缓冲区，只有在清理键缓冲区或者关闭表的时候才会将对应的索引块写入磁盘。这种方式可以极大的提升写入性能，但是在数据库或者主机崩溃时会造成索引损坏，需要执行修复操作。
+
+==比较==
+
+事务：InnoDB支持事务
+
+并发：MyISAM 只支持表级锁，而InnoDB还支持行级锁。
+
+外键：InnoDB支持外键
+
+备份：InnoDB支持在线热备份
+
+崩溃恢复：MyISAM崩溃后容易发生损坏，而且恢复速递慢
+
+其他特性：MyISAM支持压缩表和空间数据索引。
+
+### 数据类型
+
+整型、浮点型、字符串、DATETIME、TIMESTAMP
 
