@@ -14,3 +14,56 @@ Redis是速度非常快的非关系型内存键值数据库，可以存储字符
 | HASH     | 包含键值对的无序散列表 | 添加、获取、移除单个键值对<br/>获取所有键值对<br/>检查某个键是否存在 |
 | ZSET     | 有序集合               | 添加、获取、删除元素<br/>根据分值范围或者成员来获取元素<br/>计算一个键的排名 |
 
+1. STRING
+
+   ```
+   set hello world
+   get hello
+   del hello
+   get hello
+   ```
+
+2. LIST
+
+   ```
+   rpush list-key item
+   rpush list_key item1
+   
+   
+   lindex list-key 1
+   lrange list-key 0 -1
+   ```
+
+   
+
+3. SET
+
+```
+sadd set-key item
+sadd set-key item2
+
+smembers set-key
+sismember set-key item2
+srem set-key item2
+
+```
+
+4. HASH
+
+```
+hset hash-key sub-key1 value1
+hset hash-key sub-key2 value2
+
+hgetall hash-key
+hdel hash-key
+```
+
+5. ZSET
+
+   ```
+   zadd zset-key 728 member1
+   zrange zset-key 0 -1 withscores
+   
+   ```
+
+   
